@@ -2,6 +2,7 @@ package com.example.fernando.labb3b;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Set;
 
@@ -30,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView pulseView;
     private Button startButton;
     private Button stopButton;
+    private Reader reader;
+    private Thread thread;
     public static final int REQUEST_ENABLE_BT = 42;
 
     @Override
@@ -41,16 +45,49 @@ public class MainActivity extends AppCompatActivity {
         pulseView = (TextView) findViewById(R.id.pulseTextView);
         startButton = (Button) findViewById(R.id.startButton);
         stopButton = (Button) findViewById(R.id.stopButton);
+        startButton.setOnClickListener(new StartButtonlistener(this.getApplicationContext()));
+        stopButton.setOnClickListener(new StopButtonListener());
         setUp();
         Log.d("bluetooth", "checking if device!");
-        if(noninDevice != null){
-            Log.d("bluetooth","New thread!");
-            pulseHandler();
-            new Thread(new Reader(noninDevice,adapter,this.getApplicationContext(),pHandler)).start();
-        }
-        else
-            Log.d("bluetooth","No Pair the device");
     }
+
+    protected class StartButtonlistener implements View.OnClickListener{
+
+        private Context ctx;
+        public StartButtonlistener(Context ctx)
+        {
+            this.ctx = ctx;
+        }
+        @Override
+        public void onClick(View v) {
+            if(noninDevice != null){
+                pulseHandler();
+                reader = new Reader(noninDevice,adapter,ctx,pHandler);
+                thread = new Thread(reader);
+                thread.start();
+            }
+            else
+            {
+                showToast("No device found!");
+            }
+        }
+    }
+
+    protected class StopButtonListener implements View.OnClickListener{
+
+        @Override
+        public void onClick(View v) {
+            pulseView.setText("");
+            reader.setRunning(false);
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -119,5 +156,10 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
+    }
+
+    private void showToast(String msg) {
+        Toast toast = Toast.makeText(this, msg, Toast.LENGTH_SHORT);
+        toast.show();
     }
 }
