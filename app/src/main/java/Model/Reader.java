@@ -51,12 +51,14 @@ public class Reader implements Runnable{
     private static final byte ACK = 0x06;
     private static final byte[] NACK = {0x15};
 
-    public Reader(BluetoothDevice device, BluetoothAdapter adapter, Context context, Handler mHandler)
+    public Reader(BluetoothDevice device, BluetoothAdapter adapter, Context context, Handler mHandler, InetAddress ip, int port)
     {
         this.noninDevice = device;
         this.adapter = adapter;
         this.context = context;
         this.mHandler = mHandler;
+        this.IPaddress = ip;
+        this.porten = port;
         running = true;
         adapter.cancelDiscovery();
     }
@@ -156,16 +158,16 @@ public class Reader implements Runnable{
         return b & 0x01;
     }
 
-    public static final int porten = 7344;;
+    private int porten = 7344;;
     private static Socket clientSocket;
-    private static InetAddress IPaddress;
-    private static PrintWriter write;
+    private InetAddress IPaddress;
+    private PrintWriter write;
     public void sendDataToServer() {
         try {
             Log.d("bluetooth","asda");
             ArrayList<String> data = loadData();
             Log.i("data","Size: " + data.size());
-            IPaddress  = InetAddress.getByName("130.229.174.233");
+            //IPaddress  = InetAddress.getByName("130.229.174.233");
             clientSocket = new Socket(IPaddress, porten);
             Log.d("bluetooth","" + clientSocket.getInetAddress());
             write = new PrintWriter(clientSocket.getOutputStream(), true);

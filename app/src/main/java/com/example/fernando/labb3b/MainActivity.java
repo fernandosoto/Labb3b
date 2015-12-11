@@ -4,12 +4,12 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -20,6 +20,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Set;
 
 import Model.Reader;
@@ -34,11 +36,13 @@ public class MainActivity extends AppCompatActivity {
     private Button stopButton;
     private Reader reader;
     private Thread thread;
+    private boolean inSettings;
     public static final int REQUEST_ENABLE_BT = 42;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        inSettings = false;
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -62,9 +66,16 @@ public class MainActivity extends AppCompatActivity {
             setUp();
             if(noninDevice != null){
                 pulseHandler();
-                reader = new Reader(noninDevice,adapter,ctx,pHandler);
-                thread = new Thread(reader);
-                thread.start();
+                SharedPreferences sh = PreferenceManager.getDefaultSharedPreferences(ctx);
+                try {
+                    InetAddress ip = InetAddress.getByName(sh.getString("pref_ipAddress", ""));
+                    int porten = Integer.parseInt(sh.getString("pref_port",""));
+                    reader = new Reader(noninDevice,adapter,ctx,pHandler,ip,porten);
+                    thread = new Thread(reader);
+                    thread.start();
+                } catch (UnknownHostException e) {
+                    showToast("Ip address not found!");
+                }
             }
             else
             {
@@ -105,10 +116,32 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            getFragmentManager().beginTransaction()
+                    .replace(android.R.id.content, new SettingsFragment())
+                    .addToBackStack("settings")
+                    .commit();
+            inSettings = true;
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed()
+    {
+        if(inSettings)
+        {
+            backFromSettings();
+            return;
+        }
+        super.onBackPressed();
+    }
+
+    private void backFromSettings()
+    {
+        inSettings = false;
+        getFragmentManager().popBackStack();
     }
 
 
