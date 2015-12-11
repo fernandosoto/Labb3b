@@ -47,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
         stopButton = (Button) findViewById(R.id.stopButton);
         startButton.setOnClickListener(new StartButtonlistener(this.getApplicationContext()));
         stopButton.setOnClickListener(new StopButtonListener());
-        setUp();
         Log.d("bluetooth", "checking if device!");
     }
 
@@ -60,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
         }
         @Override
         public void onClick(View v) {
+            setUp();
             if(noninDevice != null){
                 pulseHandler();
                 reader = new Reader(noninDevice,adapter,ctx,pHandler);
