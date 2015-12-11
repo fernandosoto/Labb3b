@@ -2,6 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <EditTextPreference
+
         android:key="pref_ipAddress"
         android:title="IP-address: "
         android:defaultValue="130.229.174.233"

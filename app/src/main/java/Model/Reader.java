@@ -121,7 +121,7 @@ public class Reader implements Runnable{
                         res3 = msbStr+res2;
                         val = Integer.parseInt(res3,2);
                         outputString = "Pleth: " + plethValue + " Pulse: " + pulseValue + " PulseStr: " + val;
-                        mHandler.obtainMessage(val).sendToTarget();
+                        mHandler.obtainMessage(val,plethValue).sendToTarget();
                         Log.d("bluetooth", outputString);
                         pw.println(String.valueOf(plethValue));
 

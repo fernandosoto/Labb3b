@@ -24,10 +24,9 @@
         android:layout_height="wrap_content"
         android:text="Start Save"
         android:id="@+id/startButton"
+        android:layout_below="@+id/textView"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="86dp"
-        android:layout_below="@+id/textView" />
+        android:layout_alignParentStart="true" />
 
     <Button
         android:layout_width="wrap_content"
@@ -46,4 +45,14 @@
         android:layout_alignTop="@+id/textView"
         android:layout_alignRight="@+id/stopButton"
         android:layout_alignEnd="@+id/stopButton" />
+
+    <com.jjoe64.graphview.GraphView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/graphView"
+        android:layout_below="@+id/startButton"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        app:seriesType="line"/>
+
 </RelativeLayout>

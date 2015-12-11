@@ -20,6 +20,10 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Set;
@@ -36,7 +40,9 @@ public class MainActivity extends AppCompatActivity {
     private Button stopButton;
     private Reader reader;
     private Thread thread;
+    private GraphView graph;
     private boolean inSettings;
+    private LineGraphSeries<DataPoint> lineGraphSeries;
     public static final int REQUEST_ENABLE_BT = 42;
 
     @Override
@@ -49,8 +55,17 @@ public class MainActivity extends AppCompatActivity {
         pulseView = (TextView) findViewById(R.id.pulseTextView);
         startButton = (Button) findViewById(R.id.startButton);
         stopButton = (Button) findViewById(R.id.stopButton);
+        graph = (GraphView) findViewById(R.id.graphView);
         startButton.setOnClickListener(new StartButtonlistener(this.getApplicationContext()));
         stopButton.setOnClickListener(new StopButtonListener());
+        lineGraphSeries = new LineGraphSeries<>(new DataPoint[]{new DataPoint(0,0)});
+        graph.addSeries(lineGraphSeries);
+        graph.getViewport().setXAxisBoundsManual(true);
+        graph.getViewport().setYAxisBoundsManual(true);
+        graph.getViewport().setMinX(0);
+        graph.getViewport().setMaxX(20);
+        graph.getViewport().setMinY(0);
+        graph.getViewport().setMaxY(200);
         Log.d("bluetooth", "checking if device!");
     }
 
@@ -181,11 +196,15 @@ public class MainActivity extends AppCompatActivity {
     private void pulseHandler()
     {
         pHandler = new Handler(Looper.getMainLooper()){
+            int graphX = 1;
             @Override
             public void handleMessage(Message inputMessage) {
                 // Gets the image task from the incoming Message object.
                 int pulseValue = (int) inputMessage.what;
                 pulseView.setText(String.valueOf(pulseValue));
+                int plethValue = (int) inputMessage.obj;
+                lineGraphSeries.appendData(new DataPoint(graphX,plethValue),true,50);
+                graphX++;
             }
         };
 
