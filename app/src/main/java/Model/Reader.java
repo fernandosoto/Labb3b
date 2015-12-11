@@ -6,6 +6,9 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 
 import java.io.FileOutputStream;
@@ -27,6 +30,7 @@ public class Reader implements Runnable{
     private BluetoothAdapter adapter;
     private BluetoothDevice noninDevice;
     private Context context;
+    private Handler mHandler;
     public static final int REQUEST_ENABLE_BT = 42;
     private static final UUID STANDARD_SPP_UUID = UUID
             .fromString("00001101-0000-1000-8000-00805F9B34FB");
@@ -35,11 +39,12 @@ public class Reader implements Runnable{
     private static final byte ACK = 0x06;
     private static final byte[] NACK = {0x15};
 
-    public Reader(BluetoothDevice device, BluetoothAdapter adapter, Context context)
+    public Reader(BluetoothDevice device, BluetoothAdapter adapter, Context context, Handler mHandler)
     {
         this.noninDevice = device;
         this.adapter = adapter;
         this.context = context;
+        this.mHandler = mHandler;
         adapter.cancelDiscovery();
     }
 
@@ -97,6 +102,7 @@ public class Reader implements Runnable{
                         res3 = msbStr+res2;
                         val = Integer.parseInt(res3,2);
                         outputString = "Pleth: " + plethValue + " Pulse: " + pulseValue + " PulseStr: " + val;
+                        mHandler.obtainMessage(val).sendToTarget();
                         Log.d("bluetooth", outputString);
                         pw.println(plethValue);
                     }

@@ -4,6 +4,9 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -12,6 +15,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.TextView;
 
 import java.util.Set;
 
@@ -21,6 +26,10 @@ public class MainActivity extends AppCompatActivity {
 
     private BluetoothAdapter adapter;
     private BluetoothDevice noninDevice = null;
+    private Handler pHandler;
+    private TextView pulseView;
+    private Button startButton;
+    private Button stopButton;
     public static final int REQUEST_ENABLE_BT = 42;
 
     @Override
@@ -29,11 +38,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        pulseView = (TextView) findViewById(R.id.pulseTextView);
+        startButton = (Button) findViewById(R.id.startButton);
+        stopButton = (Button) findViewById(R.id.stopButton);
         setUp();
         Log.d("bluetooth", "checking if device!");
         if(noninDevice != null){
             Log.d("bluetooth","New thread!");
-            new Thread(new Reader(noninDevice,adapter,this.getApplicationContext())).start();
+            pulseHandler();
+            new Thread(new Reader(noninDevice,adapter,this.getApplicationContext(),pHandler)).start();
         }
         else
             Log.d("bluetooth","No Pair the device");
@@ -60,6 +73,8 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+
 
     public void setUp()
     {
@@ -91,5 +106,18 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    private void pulseHandler()
+    {
+        pHandler = new Handler(Looper.getMainLooper()){
+            @Override
+            public void handleMessage(Message inputMessage) {
+                // Gets the image task from the incoming Message object.
+                int pulseValue = (int) inputMessage.what;
+                pulseView.setText(String.valueOf(pulseValue));
+            }
+        };
+
     }
 }
