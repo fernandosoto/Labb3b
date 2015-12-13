@@ -58,14 +58,6 @@ public class MainActivity extends AppCompatActivity {
         graph = (GraphView) findViewById(R.id.graphView);
         startButton.setOnClickListener(new StartButtonlistener(this.getApplicationContext()));
         stopButton.setOnClickListener(new StopButtonListener());
-        lineGraphSeries = new LineGraphSeries<>(new DataPoint[]{new DataPoint(0,0)});
-        graph.addSeries(lineGraphSeries);
-        graph.getViewport().setXAxisBoundsManual(true);
-        graph.getViewport().setYAxisBoundsManual(true);
-        graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(20);
-        graph.getViewport().setMinY(0);
-        graph.getViewport().setMaxY(200);
         Log.d("bluetooth", "checking if device!");
     }
 
@@ -113,7 +105,32 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onResume() {
+        lineGraphSeries = new LineGraphSeries<>(new DataPoint[]{new DataPoint(0,0)});
+        graph.addSeries(lineGraphSeries);
+        graph.getViewport().setXAxisBoundsManual(true);
+        graph.getViewport().setYAxisBoundsManual(true);
+        graph.getViewport().setMinX(0);
+        graph.getViewport().setMaxX(20);
+        graph.getViewport().setMinY(0);
+        graph.getViewport().setMaxY(200);
+        super.onResume();
+    }
 
+    @Override
+    protected void onPause() {
+        pulseView.setText("");
+        if(reader!=null)
+            reader.setRunning(false);
+        try {
+            if(thread != null)
+                thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        super.onPause();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
