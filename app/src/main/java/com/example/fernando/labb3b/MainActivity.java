@@ -21,13 +21,19 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.LabelFormatter;
+import com.jjoe64.graphview.Viewport;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Set;
 
+import Listeners.StartButtonlistener;
+import Listeners.StopButtonListener;
 import Model.Reader;
 
 public class MainActivity extends AppCompatActivity {
@@ -56,8 +62,31 @@ public class MainActivity extends AppCompatActivity {
         startButton = (Button) findViewById(R.id.startButton);
         stopButton = (Button) findViewById(R.id.stopButton);
         graph = (GraphView) findViewById(R.id.graphView);
-        startButton.setOnClickListener(new StartButtonlistener(this.getApplicationContext()));
-        stopButton.setOnClickListener(new StopButtonListener());
+        graph.getGridLabelRenderer().setLabelFormatter(new LabelFormatter() {
+            @Override
+            public String formatLabel(double value, boolean isValueX) {
+                return ""+((int) value);
+            }
+
+            @Override
+            public void setViewport(Viewport viewport) {
+
+            }
+        });
+        startButton.setOnClickListener(new StartButtonlistener(this,adapter,graph,lineGraphSeries
+                ,noninDevice,reader,thread,pHandler,pulseView));
+        stopButton.setOnClickListener(new StopButtonListener(pulseView,reader,thread));
+
+        Log.d("bluetooth", "checking if device!");
+    }
+
+    @Override
+    protected void onResume() {
+        initGraph();
+        super.onResume();
+    }
+
+    private void initGraph(){
         lineGraphSeries = new LineGraphSeries<>(new DataPoint[]{new DataPoint(0,0)});
         graph.addSeries(lineGraphSeries);
         graph.getViewport().setXAxisBoundsManual(true);
@@ -65,54 +94,22 @@ public class MainActivity extends AppCompatActivity {
         graph.getViewport().setMinX(0);
         graph.getViewport().setMaxX(20);
         graph.getViewport().setMinY(0);
-        graph.getViewport().setMaxY(200);
-        Log.d("bluetooth", "checking if device!");
+        graph.getViewport().setMaxY(260);
     }
 
-    protected class StartButtonlistener implements View.OnClickListener{
-
-        private Context ctx;
-        public StartButtonlistener(Context ctx)
-        {
-            this.ctx = ctx;
-        }
-        @Override
-        public void onClick(View v) {
-            setUp();
-            if(noninDevice != null){
-                pulseHandler();
-                SharedPreferences sh = PreferenceManager.getDefaultSharedPreferences(ctx);
-                try {
-                    InetAddress ip = InetAddress.getByName(sh.getString("pref_ipAddress", ""));
-                    int porten = Integer.parseInt(sh.getString("pref_port",""));
-                    reader = new Reader(noninDevice,adapter,ctx,pHandler,ip,porten);
-                    thread = new Thread(reader);
-                    thread.start();
-                } catch (UnknownHostException e) {
-                    showToast("Ip address not found!");
-                }
-            }
-            else
-            {
-                showToast("No device found!");
-            }
-        }
-    }
-
-    protected class StopButtonListener implements View.OnClickListener{
-
-        @Override
-        public void onClick(View v) {
-            pulseView.setText("");
+    @Override
+    protected void onPause() {
+        pulseView.setText("");
+        if(reader!=null)
             reader.setRunning(false);
-            try {
+        try {
+            if(thread != null)
                 thread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+        super.onPause();
     }
-
 
 
     @Override
@@ -174,7 +171,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             getDevice();
         }
-
     }
 
     private void getDevice()
@@ -193,25 +189,4 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void pulseHandler()
-    {
-        pHandler = new Handler(Looper.getMainLooper()){
-            int graphX = 1;
-            @Override
-            public void handleMessage(Message inputMessage) {
-                // Gets the image task from the incoming Message object.
-                int pulseValue = (int) inputMessage.what;
-                pulseView.setText(String.valueOf(pulseValue));
-                int plethValue = (int) inputMessage.obj;
-                lineGraphSeries.appendData(new DataPoint(graphX,plethValue),true,50);
-                graphX++;
-            }
-        };
-
-    }
-
-    private void showToast(String msg) {
-        Toast toast = Toast.makeText(this, msg, Toast.LENGTH_SHORT);
-        toast.show();
-    }
 }

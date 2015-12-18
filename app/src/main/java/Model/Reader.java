@@ -104,7 +104,7 @@ public class Reader implements Runnable{
                 int plethValue = 0, pulseValue=0;
                 byte msb = 0,lsb = 0;
                 String lsbStr, res2, res3;
-                int val;
+                int val = 0;
 
                 while(input.read(packet) != -1 && running)
                 {
@@ -125,6 +125,9 @@ public class Reader implements Runnable{
                         Log.d("bluetooth", outputString);
                         pw.println(String.valueOf(plethValue));
 
+                    }else
+                    {
+                        mHandler.obtainMessage(val,plethValue).sendToTarget();
                     }
                 }
             }

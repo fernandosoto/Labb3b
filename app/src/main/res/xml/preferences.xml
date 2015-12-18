@@ -12,6 +12,7 @@
         android:key="pref_port"
         android:title="Port: "
         android:defaultValue="7344"
+        android:inputType ="number"
         />
 
 
